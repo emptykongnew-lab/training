@@ -57,6 +57,21 @@ public class OrderRepository : IOrderRepository
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
 
+    public async Task<IReadOnlyList<(int ProductId, int Sold)>> GetSoldQuantitiesSinceAsync(DateTime since)
+    {
+        var rows = await _db.OrderItems
+            .Join(_db.Orders,
+                item => item.OrderId,
+                order => order.Id,
+                (item, order) => new { item.ProductId, item.Quantity, order.CreatedAt, order.Status })
+            .Where(x => x.CreatedAt >= since && x.Status != OrderStatus.Cancelled)
+            .GroupBy(x => x.ProductId)
+            .Select(g => new { ProductId = g.Key, Sold = g.Sum(x => x.Quantity) })
+            .ToListAsync();
+
+        return rows.Select(r => (r.ProductId, r.Sold)).ToList();
+    }
+
     public async Task AddAsync(Order order) => await _db.Orders.AddAsync(order);
 
     public Task SaveChangesAsync() => _db.SaveChangesAsync();
