@@ -91,3 +91,12 @@
   後來對照原始 log 確認是我自己看漏,不是工具或查詢邏輯的問題
 - 差異的本質:MCP 把「怎麼查」封裝起來,agent 不用臨時現場推敲查詢邏輯,
   也降低了每次現場生成程式碼可能引入誤差的風險
+  
+## 活動2 練習4 — cancel_order(會改資料的工具)
+
+- cancel_order 標記 Destructive = true, Idempotent = false
+- 執行時 Claude Code 確實跳出授權確認提示,需要人工按確認才會真的執行
+- 跟唯讀工具(get_order、low_stock、customer_orders)不同,
+  這幾個補上了 ReadOnly = true 標註,執行時不會問,直接放行
+- 觀察:annotation 不只是文件說明,而是實際影響 agent 的行為 —— 
+  destructive 操作被擋下確認,唯讀操作直接放行,這是靠標註做到的
