@@ -72,3 +72,44 @@
 ## 附錄：值得留下的對話片段
 
 （貼 1–2 段最有代表性的 prompt 與回應**摘要**——不用貼全文，重點是「我怎麼問」和「它怎麼答」。）
+
+## 活動2 練習0 — Playwright MCP
+
+- 活動1練習2時,重現 bug 靠我自己在頁面上手動點擊、記錄現象
+- 這次裝了 Playwright MCP 後,只下一句「建立一筆新訂單」,
+  agent 自己開瀏覽器、填表單、送出、完成整個操作流程
+- 差異:以前 agent 只能讀寫程式碼/終端機指令,現在能像人一樣操作 UI
+- 觀察:agent 說「截圖如上」但實際上我沒看到截圖圖片顯示出來,
+  這點需要人工驗證,不能只看文字描述就相信
+  
+## 活動2 練習3 — MCP before/after 對照
+
+- 沒有 orderhub MCP:agent 自己搜尋、讀了2個檔案(ProductRepository.cs 等)、
+  跑一個 shell 指令,花費約24秒才給出答案
+- 有 orderhub MCP:一次呼叫 low_stock 工具,幾秒內直接回答,不用讀任何程式碼
+- 兩次查詢結果數字實際上一致(5筆),中途一度誤判有差異,
+  後來對照原始 log 確認是我自己看漏,不是工具或查詢邏輯的問題
+- 差異的本質:MCP 把「怎麼查」封裝起來,agent 不用臨時現場推敲查詢邏輯,
+  也降低了每次現場生成程式碼可能引入誤差的風險
+  
+## 活動2 練習4 — cancel_order(會改資料的工具)
+
+- cancel_order 標記 Destructive = true, Idempotent = false
+- 執行時 Claude Code 確實跳出授權確認提示,需要人工按確認才會真的執行
+- 跟唯讀工具(get_order、low_stock、customer_orders)不同,
+  這幾個補上了 ReadOnly = true 標註,執行時不會問,直接放行
+- 觀察:annotation 不只是文件說明,而是實際影響 agent 的行為 —— 
+  destructive 操作被擋下確認,唯讀操作直接放行,這是靠標註做到的
+
+## 活動2 練習5 — Resource + Prompt
+
+- Resource(orderhub://business-rules)技術上運作正常,內容正確,
+  但實測時 agent 沒有主動呼叫它,而是直接用 session 一開始載入的 
+  CLAUDE.md 裡已有的「Business rules」內容回答 —— 
+  代表 Resource 跟 CLAUDE.md 提供的是同一層級的背景知識,
+  agent 會優先用手邊已有的,不會多此一舉重複查詢
+- 這說明 Resource 真正的價值場合:CLAUDE.md 沒涵蓋、
+  或資訊量太大不適合塞進 CLAUDE.md 的情境,才會真正被用到
+- Prompt(debug-complaint)驗證:MCP Prompt 設計上只能由使用者
+  透過斜線指令主動觸發,agent 自己沒辦法程式化呼叫它,
+  是給人用的標準化提問模板,不是給 agent 自主判斷的工具
