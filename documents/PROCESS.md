@@ -100,3 +100,16 @@
   這幾個補上了 ReadOnly = true 標註,執行時不會問,直接放行
 - 觀察:annotation 不只是文件說明,而是實際影響 agent 的行為 —— 
   destructive 操作被擋下確認,唯讀操作直接放行,這是靠標註做到的
+
+## 活動2 練習5 — Resource + Prompt
+
+- Resource(orderhub://business-rules)技術上運作正常,內容正確,
+  但實測時 agent 沒有主動呼叫它,而是直接用 session 一開始載入的 
+  CLAUDE.md 裡已有的「Business rules」內容回答 —— 
+  代表 Resource 跟 CLAUDE.md 提供的是同一層級的背景知識,
+  agent 會優先用手邊已有的,不會多此一舉重複查詢
+- 這說明 Resource 真正的價值場合:CLAUDE.md 沒涵蓋、
+  或資訊量太大不適合塞進 CLAUDE.md 的情境,才會真正被用到
+- Prompt(debug-complaint)驗證:MCP Prompt 設計上只能由使用者
+  透過斜線指令主動觸發,agent 自己沒辦法程式化呼叫它,
+  是給人用的標準化提問模板,不是給 agent 自主判斷的工具
